@@ -9,7 +9,7 @@ from telegram.replykeyboardremove import ReplyKeyboardRemove
 from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 
-TOKEN = "5393212077:AAH70bQQO0LopUHvldmSlp_dmQJQ9Vd4pNA"
+TOKEN = "??????????:?????????????"
 bot = telegram.Bot(token=TOKEN)
 updater = Updater(TOKEN, use_context=True)
 
