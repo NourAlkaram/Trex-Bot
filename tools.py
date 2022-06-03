@@ -1,5 +1,4 @@
 import random
-
 cards = []
 distCards = {
     "1": [],
@@ -9,6 +8,8 @@ distCards = {
 }
 def cardsDst(playersCnt):
     for i in range(13):
+        if (i==7):
+            continue
         cards.append(('Red' , i+1))
     for i in range(13):
         cards.append(('Yellow' , i+1))
@@ -17,8 +18,9 @@ def cardsDst(playersCnt):
     if(playersCnt == 4):
         for i in range(13):
             cards.append(('Green' , i+1))
-    
-    for i in range(13):
+    #To inshure that the player 1 is the first king
+    distCards["1"].append(('Red' , 7))
+    for i in range(12):
         x = random.randint(0 , len(cards)-1)
         distCards["1"].append(cards[x])
         cards.pop(x)
@@ -33,7 +35,6 @@ def cardsDst(playersCnt):
         distCards["3"].append(cards[x])
         cards.pop(x)
     distCards["3"].sort()
-    
     if(playersCnt == 4):
         for i in range(13):
             x = random.randint(0 , len(cards)-1)
