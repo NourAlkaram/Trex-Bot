@@ -17,16 +17,19 @@ updater = Updater(TOKEN, use_context=True)
 
 #This queue is ment to store the incoming messages orderd by sending time
 #responseQueue = [] 
-#This dic stores an InlineKeyboardMarkup of the current unplayed cards
+#This dict stores an InlineKeyboardMarkup of the current unplayed cards
 inlineCards = {}
 #This set stores the update.message.from_user.id of each player 
 #idSet = set()
 id = list() 
+#This dict stores the username of each player .. 
+#Please note thet this username is chosen manually!
+#And it's not the same as the telegram username of each player
 usernames = {}
-#No need to discribe this integer :3
 playersCnt = 0
 currentKing = 0
 cards = []
+chosenCards = []
 distCards = {
     "1": [],
     "2": [],
@@ -55,6 +58,12 @@ currentKingdom = games
 currentKingdomButtons = gamesButtons
 whereAmIKingdoms = 0
 whereAmIGames = 6
+currentPlayerIndex = 0
+currentGameEndingCase = False
+oneFatteh = 0
+currentGame = ''
+girlsNumber = 0
+score = {}
 
 def start(update: Update, context: CallbackContext):
     if(update.message.chat_id == update.message.from_user.id):
@@ -189,31 +198,61 @@ def gameProcess():
         callAGame(currentKing)
     pass
 
-def girls(update: Update, context: CallbackContext):
-
-    print("girls")
+def sayWhosTurn():
+    global currentPlayerIndex
+    for i in id:
+        if(i == id[currentPlayerIndex]):
+            bot.sendMessage(chat_id = i , text = "دورك")
+        else:
+            bot.sendMessage(chat_id = i , text = "دور "+usernames[id[currentPlayerIndex]])
     pass
 
-def oldman(update: Update, context: CallbackContext):
-    print("oldman")
+def turn():
+    global currentPlayerIndex
+    global playersCnt
+    global oneFatteh
+    if(len(chosenCards) == playersCnt):
+        oneFatteh+=1
+        aSingleGame(gameName = currentGame)
+    else:
+        currentPlayerIndex+=1
+        sayWhosTurn()
     pass
 
-def hits(update: Update, context: CallbackContext):
-    print("hits")
-    pass
+def aSingleGame(gameName):
+    global currentPlayerIndex
+    global playersCnt
+    global girlsNumber
+    mx = 15
+    cnt = 0
+    color = chosenCards[0][0]
+    for card in chosenCards:
+        if (card[0] == color and card[1]>=mx):
+            mx = card[1]
+            currentPlayerIndex = cnt
+        cnt+=1
+        
+    if (gameName == 'girls'):
+        for i in range (playersCnt):
+            if(chosenCards[i][1] == 12):
+                girlsNumber-=1
+                if (girlsNumber == 0):
+                        currentGameEndingCase = True
+                        break
 
-def money(update: Update, context: CallbackContext):
-    print("money")
-    pass
-
-def trex(update: Update, context: CallbackContext):
-    print("trex")
-    pass
-
-def endTheGame():
+    if (oneFatteh == 13 or currentGameEndingCase == True):
+        for i in id:
+            bot.sendMessage(chat_id = i , text="خالصة")
+        callAGame()
+    else:
+        sayWhosTurn()
     pass
 
 def callback_query_handler(update: Update, context: CallbackContext):
+    global currentPlayerIndex
+    global oneFatteh
+    global currentGame
+    global girlsNumber
     input = update.callback_query.data
     if input == '/girls':
         del currentKingdom[0][0]
@@ -223,8 +262,10 @@ def callback_query_handler(update: Update, context: CallbackContext):
         update.callback_query.delete_message()
         for i in id:
             bot.send_message(chat_id = i , text="اللعبة بنات")
-            bot.send_message(chat_id = i , text="نعتبر لعبنا وخلصنا")
-        girls()
+        currentGame = 'girls'
+        girlsNumber = playersCnt
+        oneFatteh = 0
+        sayWhosTurn()
     elif input == '/oldman':
         if(len(currentKingdom[0]) == 2):
             del currentKingdom[0][1]
@@ -275,17 +316,48 @@ def callback_query_handler(update: Update, context: CallbackContext):
         trex()
     else:
         x = int(input[len(input)-1])
-        cnt = -1
-        if(input[1]==','):
-            cnt = int(input[0])
+        if (x-1 == currentPlayerIndex):
+            #cnt will represent the index of the chosenCard
+            cnt = -1
+            if(input[1]==','):
+                cnt = int(input[0])
+            else:
+                cnt = 10 + int(input[1])
+            chosenCards.append(distCards[str(x)][cnt])
+            num = chosenCards[len(chosenCards)-1][1]
+            color = chosenCards[len(chosenCards)-1][0]
+            for i in id:
+                print(i)
+                msg = str(usernames[currentPlayerIndex])+" نزل "+str(num)+" "+str(color)
+                bot.sendMessage(chat_id = i , text = msg)
+            del inlineCards[str(x)][cnt]
+            del distCards[str(x)][cnt]
+            reply_markup = telegram.InlineKeyboardMarkup(inlineCards[str(x)])
+            update.callback_query.edit_message_reply_markup(reply_markup)
+            if (len(inlineCards[str(x)]) == 0):
+                update.callback_query.delete_message()
+            turn()
         else:
-            cnt = 10 + int(input[1])
-        del inlineCards[str(x)][cnt]
-        del distCards[str(x)][cnt]
-        reply_markup = telegram.InlineKeyboardMarkup(inlineCards[str(x)])
-        update.callback_query.edit_message_reply_markup(reply_markup)
-        if (len(inlineCards[str(x)]) == 0):
-            update.callback_query.delete_message()
+            bot.sendMessage(chat_id = update.callback_query.message.chat_id , text = "لم يحن دورك بعد")
+    pass
+
+def oldman():
+    print("oldman")
+    pass
+
+def hits():
+    print("hits")
+    pass
+
+def money():
+    print("money")
+    pass
+
+def trex():
+    print("trex")
+    pass
+
+def endTheGame():
     pass
 
 dp = updater.dispatcher
