@@ -1,5 +1,5 @@
-from tools import *
 import telegram
+import random
 from telegram.ext.updater import Updater
 from telegram.update import Update
 from telegram.ext.callbackcontext import CallbackContext
@@ -26,6 +26,13 @@ usernames = {}
 #No need to discribe this integer :3
 playersCnt = 0
 currentKing = 0
+cards = []
+distCards = {
+    "1": [],
+    "2": [],
+    "3": [],
+    "4": []
+}
 gamesButtons = [
             [
                 telegram.InlineKeyboardButton("بنات" , callback_data="/girls"), 
@@ -96,7 +103,42 @@ def echo(update: Update, context: CallbackContext):
     #print(responseQueue)
     pass
 
-#The output of this function is InlineCards
+def cardsDst(playersCnt):
+    for i in range(13):
+        if (i==7):
+            continue
+        cards.append(('Red' , i+1))
+    for i in range(13):
+        cards.append(('Yellow' , i+1))
+    for i in range(13):
+        cards.append(('Blue' , i+1))
+    if(playersCnt == 4):
+        for i in range(13):
+            cards.append(('Green' , i+1))
+    #To inshure that the player 1 is the first king
+    distCards["1"].append(('Red' , 7))
+    for i in range(12):
+        x = random.randint(0 , len(cards)-1)
+        distCards["1"].append(cards[x])
+        cards.pop(x)
+    distCards["1"].sort()
+    for i in range(13):
+        x = random.randint(0 , len(cards)-1)
+        distCards["2"].append(cards[x])
+        cards.pop(x)
+    distCards["2"].sort()
+    for i in range(13):
+        x = random.randint(0 , len(cards)-1)
+        distCards["3"].append(cards[x])
+        cards.pop(x)
+    distCards["3"].sort()
+    if(playersCnt == 4):
+        for i in range(13):
+            x = random.randint(0 , len(cards)-1)
+            distCards["4"].append(cards[x])
+            cards.pop(x)
+        distCards["4"].sort()
+    
 def sendCards(playersCnt):
     cardsDst(playersCnt)
     x=1
@@ -151,15 +193,19 @@ def girls(update: Update, context: CallbackContext):
 
     print("girls")
     pass
+
 def oldman(update: Update, context: CallbackContext):
     print("oldman")
     pass
+
 def hits(update: Update, context: CallbackContext):
     print("hits")
     pass
+
 def money(update: Update, context: CallbackContext):
     print("money")
     pass
+
 def trex(update: Update, context: CallbackContext):
     print("trex")
     pass
@@ -241,8 +287,6 @@ def callback_query_handler(update: Update, context: CallbackContext):
         if (len(inlineCards[str(x)]) == 0):
             update.callback_query.delete_message()
     pass
-
-
 
 dp = updater.dispatcher
 dp.add_handler(CommandHandler("start", start))
